@@ -1,0 +1,61 @@
+# Dependency directories
+node_modules/
+jspm_packages/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+backend/venv/
+.venv/
+env/
+
+# Environment variables (Sensitive)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build outputs
+dist/
+build/
+.vite/
+
+# Database (Sensitive Patient Data)
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads/Temporary storage
+temp_uploads/
+backend/temp_uploads/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Presentation, Viva Guides & Pitch Scripts (Local environment only)
+PROJECT_PRESENTATION_GUIDE.md
+VOICE_PITCH_SCRIPT.md
+explain.md
+feature.md
+COMPLETE_PROJECT_WORKFLOW_A_TO_Z.md
+PROJECT_WORKFLOW_PRINT_READY.html
+generate_print_html.py
+SIH_PPT_SLIDE_BY_SLIDE_SPEECH_GUIDE.html
+MEDAI_ENTIRE_APP_PAGES_GUIDE.html
+TEAM_PULSE_MEDAI_MASTER_MANUAL.html
+run_backend.bat
+backend/run_backend.bat
+
+
+
+
+
+
+# Local scratch and log files
+*.txt
+backend/available_models.txt
+backend/models.txt
+frontend/build_errors.txt
