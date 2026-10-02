@@ -240,67 +240,50 @@ export default function ReportViewer({ report, patient, imageName, preview, pati
                   </div>
                   <div className="radiology-frame">
                      <img src={preview} alt="Patient Clinical Scan" className="analyzed-image" />
-                     {heatmapActive && (
-                        <div className="heatmap-overlay">
-                           {/* Laser Scanning Line */}
+                     {heatmapActive && report.visual_annotations && (
+                        <div className="heatmap-overlay-v2">
+                           {report.visual_annotations.map((ann, idx) => {
+                              if (!ann.box_2d || ann.box_2d.length < 4) return null;
+                              const [coord0, coord1, coord2, coord3] = ann.box_2d;
+                              
+                              // Helper to convert 0-1000 or 0-1 scale to percentage (0-100)
+                              const toPercent = (val) => {
+                                 if (val === undefined || val === null) return 0;
+                                 return val > 0 && val <= 1.0 ? val * 100 : val / 10;
+                              };
+
+                              const topVal = toPercent(coord0);
+                              const leftVal = toPercent(coord1);
+                              const heightVal = toPercent(coord2) - topVal;
+                              const widthVal = toPercent(coord3) - leftVal;
+
+                              return (
+                                 <div 
+                                    key={idx}
+                                    className="ai-annotation-box"
+                                    style={{
+                                       top: `${topVal}%`,
+                                       left: `${leftVal}%`,
+                                       width: `${widthVal}%`,
+                                       height: `${heightVal}%`
+                                    }}
+                                 >
+                                    <div className="annotation-label">
+                                       {ann.label} ({ann.confidence}%)
+                                    </div>
+                                 </div>
+                              );
+                           })}
                            <div className="scan-line"></div>
-
-                           {/* Interactive Anomaly Localization & Pulsing Heatmap Hotspots */}
-                           {report.visual_annotations && report.visual_annotations.length > 0 ? (
-                              report.visual_annotations.map((ann, idx) => {
-                                 if (!ann.box_2d || ann.box_2d.length < 4) return null;
-                                 const [coord0, coord1, coord2, coord3] = ann.box_2d;
-                                 
-                                 const toPercent = (val) => {
-                                    if (val === undefined || val === null) return 0;
-                                    return val > 0 && val <= 1.0 ? val * 100 : val / 10;
-                                 };
-
-                                 const topVal = toPercent(coord0);
-                                 const leftVal = toPercent(coord1);
-                                 const heightVal = Math.max(8, toPercent(coord2) - topVal);
-                                 const widthVal = Math.max(8, toPercent(coord3) - leftVal);
-                                 const centerX = leftVal + widthVal / 2;
-                                 const centerY = topVal + heightVal / 2;
-
-                                 return (
-                                    <React.Fragment key={idx}>
-                                       {/* Pulsing Hotspot Radar Ring centered on anomaly */}
-                                       <div 
-                                          className="pulse-ring"
-                                          style={{
-                                             top: `${centerY}%`,
-                                             left: `${centerX}%`,
-                                             width: `${Math.max(70, widthVal * 1.6)}px`,
-                                             height: `${Math.max(70, heightVal * 1.6)}px`
-                                          }}
-                                       ></div>
-                                       
-                                       {/* Bounding Box & Pathology Tag */}
-                                       <div 
-                                          className="ai-annotation-box"
-                                          style={{
-                                             top: `${topVal}%`,
-                                             left: `${leftVal}%`,
-                                             width: `${widthVal}%`,
-                                             height: `${heightVal}%`
-                                          }}
-                                       >
-                                          <div className="annotation-label">
-                                             {ann.label} ({ann.confidence || 92}%)
-                                          </div>
-                                       </div>
-                                    </React.Fragment>
-                                 );
-                              })
-                           ) : (
-                              /* Default Anatomical Chest Cavity Radar Rings */
-                              <>
-                                 <div className="pulse-ring ring-1"></div>
-                                 <div className="pulse-ring ring-2"></div>
-                              </>
-                           )}
                         </div>
+                     )}
+                     {heatmapActive && (!report.visual_annotations || report.visual_annotations.length === 0) && (
+                         <div className="heatmap-overlay">
+                            <div className="scan-line"></div>
+                            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'var(--accent-cyan)', fontSize: '0.8rem', textAlign: 'center', background: 'rgba(0,0,0,0.6)', padding: '8px', borderRadius: '4px' }}>
+                               No localized anomalies detected in clinical frame.
+                            </div>
+                         </div>
                      )}
                   </div>
                </div>
