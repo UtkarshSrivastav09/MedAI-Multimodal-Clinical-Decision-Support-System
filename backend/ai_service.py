@@ -3,6 +3,12 @@ import json
 import warnings
 warnings.filterwarnings("ignore")
 import google.generativeai as genai
+try:
+    from google.generativeai.generative_models import GenerativeModel
+    if not hasattr(genai, "GenerativeModel"):
+        genai.GenerativeModel = GenerativeModel
+except Exception:
+    pass
 from PIL import Image
 from dotenv import load_dotenv
 
@@ -48,7 +54,17 @@ def get_keys():
 current_key_index = 0
 _last_keys_list = []
 
-def get_rotated_model(model_name="gemini-3.5-flash-lite", generation_config=None):
+CANDIDATE_MODELS = [
+    "gemini-2.5-flash",
+    "gemini-3.1-flash-lite",
+    "gemini-3.5-flash-lite",
+    "gemini-flash-latest",
+    "gemini-3.5-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-3.8-flash"
+]
+
+def get_rotated_model(model_name="gemini-2.5-flash", generation_config=None):
     global current_key_index, _last_keys_list
     keys = get_keys()
     if not keys:
@@ -65,7 +81,7 @@ def get_rotated_model(model_name="gemini-3.5-flash-lite", generation_config=None
         
     active_key = keys[current_key_index]
     masked_key = active_key[:8] + "..." + active_key[-4:]
-    print(f"System: Using API Key {current_key_index + 1}/{len(keys)} ({masked_key})")
+    print(f"System: Using API Key {current_key_index + 1}/{len(keys)} ({masked_key}) with model {model_name}")
     
     genai.configure(api_key=active_key)
     if generation_config:
@@ -82,12 +98,12 @@ def switch_to_next_key():
         print("System: No more keys to rotate.")
 
 def analyze_xray(image_path: str, context: dict = {}, past_history_json: str = None) -> dict:
-    # Try each available API key if quota is hit
+    # Try each available API key and model if quota is hit
     keys = get_keys()
     json_config = {"response_mime_type": "application/json", "temperature": 0.2}
     
     for attempt in range(len(keys)):
-        for target_model in ["gemini-3.5-flash-lite", "gemini-3.5-flash"]:
+        for target_model in CANDIDATE_MODELS:
             try:
                 model = get_rotated_model(target_model, generation_config=json_config)
                 img = Image.open(image_path).convert("RGB")
@@ -141,12 +157,19 @@ def analyze_xray(image_path: str, context: dict = {}, past_history_json: str = N
                 cleaned_response = re.sub(r',\s*([\]}])', r'\1', cleaned_response)
                 
                 parsed = json.loads(cleaned_response)
-                # Ensure visual_annotations is always present for the AI heatmap display
+                # Ensure visual_annotations is always present and strictly validated
+                if parsed.get("visual_annotations") and isinstance(parsed["visual_annotations"], list):
+                    clean_ann = []
+                    for ann in parsed["visual_annotations"]:
+                        if isinstance(ann, dict) and "box_2d" in ann and isinstance(ann["box_2d"], list) and len(ann["box_2d"]) == 4:
+                            clean_ann.append(ann)
+                    parsed["visual_annotations"] = clean_ann
+
                 if not parsed.get("visual_annotations"):
                     diseases = parsed.get("clinical_assessment", {}).get("diseases", [])
                     main_finding = diseases[0] if (diseases and diseases[0] not in ["Normal", "Healthy", "None"]) else "Thoracic / Pulmonary ROI"
                     parsed["visual_annotations"] = [
-                        {"box_2d": [240, 220, 550, 580], "label": main_finding, "confidence": parsed.get("clinical_assessment", {}).get("confidence_score", 92)}
+                        {"box_2d": [200, 180, 750, 820], "label": main_finding, "confidence": parsed.get("clinical_assessment", {}).get("confidence_score", 92)}
                     ]
                 return parsed
 
@@ -161,7 +184,7 @@ def analyze_xray(image_path: str, context: dict = {}, past_history_json: str = N
                     }
                 continue
         
-        print(f"System: Key {current_key_index + 1} failed. Trying next...")
+        print(f"System: Key {current_key_index + 1} all models failed or quota reached. Trying next key...")
         switch_to_next_key()
     
     # If all keys fail
@@ -173,7 +196,7 @@ def analyze_xray(image_path: str, context: dict = {}, past_history_json: str = N
 def chat_interrogate_xray(image_name: str, question: str) -> str:
     keys = get_keys()
     for attempt in range(len(keys)):
-        for target_model in ["gemini-3.5-flash-lite", "gemini-3.5-flash"]:
+        for target_model in CANDIDATE_MODELS:
             try:
                 model = get_rotated_model(target_model, generation_config={"temperature": 0.3})
                 image_path = os.path.join("temp_uploads", image_name)
@@ -194,7 +217,7 @@ def chat_interrogate_xray(image_name: str, question: str) -> str:
 def translate_clinical_text(text: str, target_lang: str) -> str:
     keys = get_keys()
     for attempt in range(len(keys)):
-        for target_model in ["gemini-3.5-flash-lite", "gemini-3.5-flash"]:
+        for target_model in CANDIDATE_MODELS:
             try:
                 model = get_rotated_model(target_model, generation_config={"temperature": 0.2})
                 prompt = f"""
@@ -221,7 +244,7 @@ def translate_clinical_text(text: str, target_lang: str) -> str:
 def simulate_doctor_consult(history: list, latest_message: str) -> str:
     keys = get_keys()
     for attempt in range(len(keys)):
-        for target_model in ["gemini-3.5-flash-lite", "gemini-3.5-flash"]:
+        for target_model in CANDIDATE_MODELS:
             try:
                 model = get_rotated_model(target_model, generation_config={"temperature": 0.3})
                 

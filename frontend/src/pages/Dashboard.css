@@ -236,33 +236,46 @@
 .user-welcome-container {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  position: relative;
+  z-index: 2;
 }
 
 .welcome-text {
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: var(--text-secondary);
-  font-weight: 500;
-  letter-spacing: 0.05em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  transition: color 0.3s ease;
+  width: fit-content;
+}
+
+.welcome-text:hover {
+  color: var(--accent-cyan);
 }
 
 .username-highlight {
   font-size: 2.8rem;
   font-weight: 800;
+  line-height: 1.2;
+  margin: 2px 0 6px 0;
+  padding: 2px 8px 4px 0;
   background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-purple) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  width: fit-content;
+  transform-origin: left center;
+  transition: filter 0.3s ease, transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
   cursor: pointer;
   position: relative;
 }
 
 .username-highlight:hover {
-  transform: scale(1.05) translateY(-2px);
-  filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.4));
+  transform: translateX(4px);
+  filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.5));
 }
 
 .role-badge {
@@ -280,8 +293,16 @@
 }
 
 @media (max-width: 768px) {
+  .header-with-art {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 20px;
+  }
   .header-art-container {
-    display: none !important; /* Completely turn off expensive DNA animation loop on mobile */
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 8px;
   }
   .page-header {
     flex-direction: column !important;
@@ -405,7 +426,7 @@
   align-items: center;
   gap: 40px;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .header-art-container {
@@ -463,25 +484,37 @@
 
 @media (max-width: 900px) {
   .dna-spiral-wrapper {
-    width: 300px;
+    width: 100%;
+    max-width: 320px;
+  }
+  .dna-spiral {
+    height: 60px;
+  }
+  .dna-dot {
+    width: 8px;
+    height: 8px;
   }
 }
 
 @media (max-width: 600px) {
   .dna-spiral-wrapper {
-    width: 150px;
-    gap: 8px;
+    width: 100%;
+    max-width: 260px;
+    gap: 6px;
   }
   .dna-spiral {
-    height: 40px;
+    height: 44px;
   }
   .dna-dot {
-    width: 5px;
-    height: 5px;
+    width: 6px;
+    height: 6px;
     box-shadow: 0 0 8px var(--accent-cyan);
   }
   .dna-label {
-    font-size: 0.5rem;
+    font-size: 0.55rem;
     letter-spacing: 1px;
   }
 }
+
+
+

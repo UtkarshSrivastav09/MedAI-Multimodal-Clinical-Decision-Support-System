@@ -114,6 +114,8 @@ An industrial-grade, full-stack Clinical Decision Support System (CDSS) designed
 3. **Launch Server**:
    ```bash
    py -m uvicorn main:app --reload
+   .\venv\Scripts\python -m uvicorn main:app --reload
+
    ```
    *Backend runs at: http://127.0.0.1:8000 (Swagger docs at `/docs`)*
 
