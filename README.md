@@ -11,7 +11,7 @@
 [![Google Gemini](https://img.shields.io/badge/AI_Engine-Gemini_Flash-8E75B2?style=for-the-badge&logo=google-cloud)](https://aistudio.google.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-**[🌐 Live Web Application](https://med-ai-clinical-decision-support-sy.vercel.app/)** • **[📑 API Documentation](http://127.0.0.1:8000/docs)** • **[👨‍💻 About the Developer](#-about-the-developer)**
+**[🌐 Live Web Application](https://med-ai-clinical-decision-support-sy.vercel.app/)** • **[📑 API Documentation](http://127.0.0.1:8000/docs)** • **[👨‍💻 About the Developer](https://utkarshsrivastav09.github.io/Utkarsh-Portfolio/)**
 
 </div>
 
