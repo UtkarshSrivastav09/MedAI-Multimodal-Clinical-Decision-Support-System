@@ -183,13 +183,24 @@ button {
   color: var(--accent-cyan);
 }
 
-.main-content, .auth-main {
+.main-content {
   flex: 1;
   padding: 40px 40px 0 40px; /* Top, Left/Right, Bottom=0 */
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+}
+
+.auth-main {
+  flex: 1;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
 }
 
 

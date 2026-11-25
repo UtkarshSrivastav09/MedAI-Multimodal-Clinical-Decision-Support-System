@@ -1,10 +1,27 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Mail, Key, LogIn, ShieldAlert, Building, Loader2, Activity } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Sun,
+  Moon,
+  X,
+  Loader2,
+  AlertCircle,
+  Activity,
+  ShieldCheck,
+  Zap
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import useAuth from "../hooks/useAuth";
-import InteractiveBackground from "../components/InteractiveBackground";
-import './AuthStyles.css';
+import "./AuthStyles.css";
+
+const ROLES = [
+  { id: "Doctor", label: "Clinician" },
+  { id: "Radiologist", label: "Radiology" },
+  { id: "Admin", label: "Admin" },
+  { id: "Patient", label: "Patient" },
+];
 
 const RegisterForm = ({ setAuth }) => {
   const [form, setForm] = useState({
@@ -12,35 +29,69 @@ const RegisterForm = ({ setAuth }) => {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "",
+    role: "Doctor",
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return document.documentElement.getAttribute("data-theme") !== "light";
+  });
 
   const navigate = useNavigate();
   const { register, error: authError } = useAuth();
 
+  useEffect(() => {
+    if (sessionStorage.getItem("isAuthenticated") === "true") {
+      navigate("/");
+    }
+  }, [navigate]);
+
+  const toggleTheme = () => {
+    const nextTheme = isDarkMode ? "light" : "dark";
+    setIsDarkMode(!isDarkMode);
+    document.documentElement.setAttribute("data-theme", nextTheme);
+  };
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    setErrorMsg(""); // Clear local error on change
+    setErrorMsg("");
+  };
+
+  const handleRoleSelect = (roleId) => {
+    setForm({ ...form, role: roleId });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!form.username.trim() || !form.email.trim() || !form.password) {
+      return setErrorMsg("Please fill in all required fields.");
+    }
+
+    if (form.password.length < 4) {
+      return setErrorMsg("Password must be at least 4 characters.");
+    }
+
     if (form.password !== form.confirmPassword) {
-      return setErrorMsg("Passwords do not match");
+      return setErrorMsg("Passwords do not match.");
     }
 
     setIsLoading(true);
 
-    const success = await register(form.username, form.email, form.password, form.role);
+    const success = await register(
+      form.username.trim(),
+      form.email.trim(),
+      form.password,
+      form.role || "Med-AI Global"
+    );
 
     if (success) {
       sessionStorage.setItem("registrationSuccess", "true");
-      sessionStorage.setItem("registeredEmail", form.email);
-      sessionStorage.setItem("registeredUsername", form.username);
+      sessionStorage.setItem("registeredUsername", form.username.trim());
       navigate("/login");
     }
 
@@ -48,201 +99,278 @@ const RegisterForm = ({ setAuth }) => {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-blob blob-1" style={{ background: 'linear-gradient(135deg, var(--accent-cyan), var(--success))' }}></div>
-      <div className="auth-blob blob-2" style={{ background: 'linear-gradient(135deg, var(--accent-purple), var(--accent-cyan))' }}></div>
-      <div className="auth-blob blob-3"></div>
-
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95, y: 30 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="glass-card auth-container"
-      >
-
-        {/* Left Side: Brand Info */}
-        <div className="auth-brand">
-          <InteractiveBackground colorTheme="purple" />
-          {/* Glowing Neural Visualizer Core */}
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, duration: 0.8 }}
-            className="neural-core-wrapper"
-          >
-            <div className="neural-grid"></div>
-            <motion.div 
-              className="neural-ring ring-outer"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-              style={{ borderColor: 'rgba(179, 136, 255, 0.4)' }}
-            />
-            <motion.div 
-              className="neural-ring ring-inner"
-              animate={{ rotate: -360 }}
-              transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-            />
-            <div className="scanner-laser" style={{ background: 'linear-gradient(90deg, transparent, var(--accent-purple), transparent)', boxShadow: '0 0 10px var(--accent-purple), 0 0 20px var(--accent-purple)' }}></div>
-            <motion.div 
-              className="neural-orb"
-              whileHover={{ scale: 1.1, boxShadow: "0 0 40px rgba(179, 136, 255, 0.5)" }}
-              transition={{ type: "spring", stiffness: 300, damping: 15 }}
-            >
-              <ShieldAlert size={30} color="var(--accent-purple)" className="pulse-icon" />
-            </motion.div>
-          </motion.div>
-
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.5 }}
-            className="logo-badge"
-            style={{ backgroundColor: 'rgba(179, 136, 255, 0.08)', borderColor: 'rgba(179, 136, 255, 0.2)' }}
-          >
-            <span className="shimmer-text">Welcome to Med-AI</span>
-          </motion.div>
-
-          <motion.h1 
-            initial={{ opacity: 0, y: 15 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            transition={{ delay: 0.5, duration: 0.6 }}
-            className="brand-title"
-          >
-            AI-Powered <br />
-            <span className="gradient-text-purple">Clinical Support</span>
-          </motion.h1>
-
-          <motion.p 
-            initial={{ opacity: 0, y: 10 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            transition={{ delay: 0.6, duration: 0.5 }}
-            className="brand-subtitle"
-          >
-            Join our AI-driven system to upload, analyze, and manage clinical data efficiently.
-          </motion.p>
-
-          {/* Diagnostic Status Indicator */}
-          <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7, duration: 0.6 }}
-            className="brand-stats"
-          >
-            <div className="stat-pill">
-              <span className="stat-dot green"></span>
-              <span>Core Online</span>
+    <div className="dribbble-auth-viewport">
+      <div className="dribbble-master-card">
+        {/* ================= LEFT SIDE: Signup Form ================= */}
+        <div className="dribbble-form-section">
+          {/* Header Bar: Brand Capsule on Left, Theme & Home on Right */}
+          <div className="form-header-bar">
+            <div className="dribbble-brand-capsule">
+              <span className="brand-dot"></span>
+              <span>Med-AI</span>
             </div>
-            <div className="stat-pill">
-              <span className="stat-dot purple"></span>
-              <span>HIPAA Secure</span>
-            </div>
-            <div className="stat-pill">
-              <span className="stat-dot cyan"></span>
-              <span>v2.8-Neural</span>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Right Side: Form */}
-        <div className="auth-form-wrapper">
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.6 }}
-            style={{ fontSize: '1.85rem', fontWeight: 700, marginBottom: '24px' }}
-          >
-            Request Access
-          </motion.h2>
-
-          <form onSubmit={handleSubmit}>
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.35, duration: 0.5 }} className="auth-input-group">
-              <input
-                name="username"
-                placeholder="Institutional ID (Username)"
-                onChange={handleChange}
-                className="auth-input"
-                required
-              />
-              <User size={18} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4, duration: 0.5 }} className="auth-input-group">
-              <input
-                name="email"
-                type="email"
-                placeholder="Work Email"
-                onChange={handleChange}
-                className="auth-input"
-                required
-              />
-              <Mail size={18} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.45, duration: 0.5 }} className="auth-input-group">
-              <select
-                name="role"
-                value={form.role}
-                onChange={handleChange}
-                className="auth-input"
-                style={{ appearance: 'none', cursor: 'pointer' }}
-                required
+            <div className="form-top-actions">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="form-icon-pill"
+                title="Toggle Light / Dark Mode"
               >
-                <option value="" style={{ color: '#000' }}>Select Role</option>
-                <option value="Doctor" style={{ color: '#000' }}>Doctor</option>
-                <option value="Patient" style={{ color: '#000' }}>Patient</option>
-                <option value="Admin" style={{ color: '#000' }}>Admin</option>
-                <option value="Nurse" style={{ color: '#000' }}>Nurse</option>
-              </select>
-              <User size={18} />
-            </motion.div>
+                {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/")}
+                className="form-icon-pill"
+                title="Home"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </div>
 
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5, duration: 0.5 }} className="auth-input-group" style={{ marginBottom: '12px' }}>
-              <input
-                name="password"
-                type="password"
-                placeholder="Security Password"
-                onChange={handleChange}
-                className="auth-input"
-                required
-              />
-              <Key size={18} />
-            </motion.div>
+          <div style={{ maxWidth: "400px", margin: "auto 0" }}>
+            <div className="dribbble-form-head">
+              <h1 className="dribbble-heading">
+                Join <span className="gradient-title-accent">MedAI</span>
+              </h1>
+              <p className="dribbble-subheading">
+                Sign up to connect to the clinical CDSS diagnostic network
+              </p>
+            </div>
 
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.55, duration: 0.5 }} className="auth-input-group">
-              <input
-                name="confirmPassword"
-                type="password"
-                placeholder="Confirm Password"
-                onChange={handleChange}
-                className="auth-input"
-                required
-              />
-              <Key size={18} />
-            </motion.div>
-
+            {/* Error Banner */}
             <AnimatePresence>
               {(errorMsg || authError) && (
-                <motion.p 
-                  initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0 }}
-                  style={{ color: 'var(--danger)', fontSize: '0.9rem', marginBottom: '16px', padding: '10px', background: 'rgba(255,82,82,0.1)', borderRadius: '8px' }}
+                <motion.div
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="dribbble-alert error"
                 >
-                  {errorMsg || authError}
-                </motion.p>
+                  <AlertCircle size={16} />
+                  <span>{errorMsg || authError}</span>
+                </motion.div>
               )}
             </AnimatePresence>
 
-            <motion.button 
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65, duration: 0.5 }}
-              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-              type="submit" className="auth-btn" disabled={isLoading} style={{ background: 'var(--accent-cyan)', color: 'var(--bg-primary)' }}
-            >
-              {isLoading ? <Loader2 size={18} className="spin-anim" /> : <><LogIn size={18} /> Submit Credentials</>}
-            </motion.button>
+            <form onSubmit={handleSubmit}>
+              {/* Full Name / Username */}
+              <div className="dribbble-field">
+                <label className="dribbble-field-label">Username</label>
+                <div className="dribbble-input-box">
+                  <input
+                    name="username"
+                    type="text"
+                    placeholder="e.g. dr_arjun"
+                    value={form.username}
+                    onChange={handleChange}
+                    className="dribbble-pill-input"
+                    required
+                    autoComplete="username"
+                  />
+                </div>
+              </div>
 
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.75, duration: 0.5 }} className="switch-text">
-              Already Have an Account?
-              <span onClick={() => navigate('/login')}>Sign In</span>
-            </motion.div>
-          </form>
+              {/* Email */}
+              <div className="dribbble-field">
+                <label className="dribbble-field-label">Institutional Email</label>
+                <div className="dribbble-input-box">
+                  <input
+                    name="email"
+                    type="email"
+                    placeholder="doctor@hospital.org"
+                    value={form.email}
+                    onChange={handleChange}
+                    className="dribbble-pill-input"
+                    required
+                    autoComplete="email"
+                  />
+                </div>
+              </div>
+
+              {/* Role Selection */}
+              <div style={{ marginBottom: "10px" }}>
+                <label className="dribbble-field-label">Clinical Scope & Role</label>
+                <div className="dribbble-roles-row">
+                  {ROLES.map((r) => (
+                    <button
+                      key={r.id}
+                      type="button"
+                      onClick={() => handleRoleSelect(r.id)}
+                      className={`dribbble-role-pill ${form.role === r.id ? "active" : ""}`}
+                    >
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Password & Confirm Password side by side */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                <div className="dribbble-field">
+                  <label className="dribbble-field-label">Password</label>
+                  <div className="dribbble-input-box">
+                    <input
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={form.password}
+                      onChange={handleChange}
+                      className="dribbble-pill-input"
+                      required
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="dribbble-eye-btn"
+                      title={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="dribbble-field">
+                  <label className="dribbble-field-label">Confirm</label>
+                  <div className="dribbble-input-box">
+                    <input
+                      name="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={form.confirmPassword}
+                      onChange={handleChange}
+                      className="dribbble-pill-input"
+                      required
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="dribbble-eye-btn"
+                      title={showConfirmPassword ? "Hide password" : "Show password"}
+                    >
+                      {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Submit Pill Button */}
+              <button
+                type="submit"
+                className="dribbble-submit-pill"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 size={18} className="spin-anim" />
+                    <span>Creating profile...</span>
+                  </>
+                ) : (
+                  <span>Submit</span>
+                )}
+              </button>
+            </form>
+          </div>
+
+          {/* Footer */}
+          <div className="dribbble-form-footer">
+            <span>
+              Have an account?{" "}
+              <span
+                className="dribbble-link"
+                onClick={() => navigate("/login")}
+              >
+                Sign in
+              </span>
+            </span>
+            <span style={{ fontSize: "0.76rem", opacity: 0.8, display: "flex", alignItems: "center", gap: "4px" }}>
+              <ShieldCheck size={13} color="#00e5ff" /> HIPAA & Clinical Security
+            </span>
+          </div>
         </div>
 
-      </motion.div>
+        {/* ================= RIGHT SIDE: 20+ LPA Live MedAI Workstation Showcase ================= */}
+        <div className="dribbble-showcase-section">
+          {/* Top Window HUD Bar */}
+          <div className="hud-window-header">
+            <div className="hud-window-dots">
+              <span className="hud-dot red"></span>
+              <span className="hud-dot yellow"></span>
+              <span className="hud-dot green"></span>
+            </div>
+            <div className="hud-window-title">
+              <span>MED-AI DIAGNOSTIC ENGINE V2.8</span>
+              <span className="hud-active-pill">● CORE ONLINE</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#00e5ff", fontSize: "0.75rem", fontFamily: "monospace" }}>
+              <Zap size={14} /> 28ms
+            </div>
+          </div>
+
+          {/* Center Scanner Viewport */}
+          <div className="hud-scanner-stage">
+            <img
+              src="/medical_ai_header_art_1777788008797.png"
+              alt="MedAI Neural Radiograph Inference"
+              className="hud-scanner-bg"
+            />
+            <div className="hud-scanner-grid"></div>
+
+            {/* Dynamic Sweeping Laser */}
+            <div className="hud-laser-line"></div>
+
+            {/* Region of Interest Targeting Box 1 */}
+            <div className="hud-roi-marker roi-1">
+              <span className="roi-tag">ROI: RUL [Clear]</span>
+            </div>
+
+            {/* Region of Interest Targeting Box 2 */}
+            <div className="hud-roi-marker roi-2">
+              <span className="roi-tag">CTR: 0.45 [Normal]</span>
+            </div>
+
+            {/* Top Floating Badge */}
+            <div className="hud-floating-badge">
+              <span className="hud-badge-title">
+                <Activity size={14} /> Multimodal Radiography
+              </span>
+              <span className="hud-badge-sub">Sub-4s Gemini Flash Analysis</span>
+            </div>
+
+            {/* Bottom Floating Insight Pill */}
+            <div className="hud-floating-insight">
+              <span className="insight-val">99.4%</span>
+              <div className="insight-label">
+                <strong>RADS-1 Grade Normal</strong>
+                <span>Clinical Panel Concordance</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Telemetry Dock */}
+          <div className="hud-telemetry-dock">
+            <div className="telemetry-item">
+              <span className="telemetry-label">Heart Rate</span>
+              <span className="telemetry-val highlight">72 BPM</span>
+            </div>
+            <div className="telemetry-item">
+              <span className="telemetry-label">SpO2 Oxygen</span>
+              <span className="telemetry-val">98% Normal</span>
+            </div>
+            <div className="telemetry-item">
+              <span className="telemetry-label">Blood Pressure</span>
+              <span className="telemetry-val">120/80 mmHg</span>
+            </div>
+            <div className="telemetry-item">
+              <span className="telemetry-label">Model Pipeline</span>
+              <span className="telemetry-val highlight">Gemini-2.0-Vision</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -46,7 +46,12 @@ generate_print_html.py
 SIH_PPT_SLIDE_BY_SLIDE_SPEECH_GUIDE.html
 MEDAI_ENTIRE_APP_PAGES_GUIDE.html
 TEAM_PULSE_MEDAI_MASTER_MANUAL.html
+MED_AI_HINGLISH_SCRIPT_COMPLETE.md
+MED_AI_HINGLISH_SCRIPT_COMPLETE.pdf
+generate_pdf.py
+run_all.bat
 run_backend.bat
+run_frontend.bat
 backend/run_backend.bat
 
 
